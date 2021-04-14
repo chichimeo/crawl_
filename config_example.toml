@@ -1,0 +1,5 @@
+hosts      = "localhost:27017"
+database   = "crawl"
+username   = ""
+password   = ""
+collection = "Malware"
