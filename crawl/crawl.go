@@ -1,34 +1,22 @@
-package malware
+package crawl
 
 import (
+	"Crawl/malware"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"regexp"
-
 	"sync"
 
-	"github.com/BurntSushi/toml"
 	"gopkg.in/mgo.v2"
 )
-
-type Session struct {
-	session *mgo.Session
-}
-
-type Config struct {
-	Hosts      string
-	Database   string
-	UserName   string
-	Password   string
-	Collection string
-}
 
 var (
 	regexLineBreak = regexp.MustCompile(`.*\n`)
 	regexString    = regexp.MustCompile(`\S+`)
 	regexDay       = regexp.MustCompile(`\d{4}-\d{2}-\d{2}/`)
 	collection     *mgo.Collection
+	repository     *MalwareHandler
 )
 
 const (
@@ -36,47 +24,8 @@ const (
 	urlDay     = "%smalshare_fileList.%s.all.txt"
 )
 
-func NewSession(conf Config) (*Session, error) {
-	dialInfo := &mgo.DialInfo{
-		Addrs:    []string{conf.Hosts},
-		Database: conf.Database,
-		Username: conf.UserName,
-		Password: conf.Password,
-	}
-	session, err := mgo.DialWithInfo(dialInfo)
-	if err != nil {
-		return &Session{session}, err
-	}
-	session.SetMode(mgo.Monotonic, true)
-
-	return &Session{session}, nil
-}
-
-func (s *Session) Copy() *mgo.Session {
-	return s.session.Copy()
-}
-func (s *Session) Close() {
-	if s.session != nil {
-		s.session.Close()
-	}
-}
-
-func NewCollection() (collection *mgo.Collection, close func()) {
-	var conf Config
-	_, err := toml.DecodeFile("config_example.toml", &conf)
-	if err != nil {
-		fmt.Println(err)
-		return nil, close
-	}
-
-	session, err := NewSession(conf)
-	close = session.Close
-
-	if err != nil {
-		fmt.Println(err)
-		return nil, close
-	}
-	return session.Copy().DB(conf.Database).C(conf.Collection), close
+type MalwareHandler struct {
+	Repository malware.Crawl
 }
 
 func GetAllDays(s string) []string {
@@ -91,6 +40,7 @@ func GetAllDays(s string) []string {
 	}
 	return list
 }
+
 func GetData(s string) (string, error) {
 	resp, err := http.Get(fmt.Sprintf(urlGetData, s))
 	if err != nil {
@@ -119,7 +69,7 @@ func GetMalware(wg *sync.WaitGroup, allDays <-chan string) {
 		for _, el := range elements {
 			item := regexString.FindAllString(el, -1)
 
-			it := Malware{}
+			it := malware.Malware{}
 			if len(item) < 3 {
 				continue
 			}
@@ -133,7 +83,7 @@ func GetMalware(wg *sync.WaitGroup, allDays <-chan string) {
 				it.Sha256 = item[2]
 			}
 			it.Date = day[:len(day)-1]
-			err = InsertValue(it)
+			err = repository.Repository.Insert(it)
 			if err != nil {
 				fmt.Println("error", err)
 			}
@@ -141,16 +91,8 @@ func GetMalware(wg *sync.WaitGroup, allDays <-chan string) {
 	}
 }
 
-func InsertValue(mal Malware) error {
-	err := collection.Insert(mal)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func Crawl(col *mgo.Collection) {
-	collection = col
+func (re *MalwareHandler) Crawl() {
+	repository = re
 	body, err := GetData("")
 	if err != nil {
 		return
