@@ -24,6 +24,7 @@ type Config struct {
 	UserName   string
 	Password   string
 	Collection string
+	Server     string
 }
 
 func NewSession(conf Config) (*Session, error) {
@@ -64,7 +65,6 @@ func main() {
 
 	collectionRepository := malware.NewMongoRepository(session.Copy().DB(conf.Database))
 
-	fmt.Println(os.Args[1])
 	switch os.Args[1] {
 	case "crawl":
 		malwareHandler := crawl.MalwareHandler{
@@ -86,7 +86,7 @@ func main() {
 		myRouter.HandleFunc("/api/malware/{hash}", malwareHandler.UpdateData).Methods("PATCH")
 		myRouter.HandleFunc("/api/malware/{hash}", malwareHandler.UpdateData).Methods("PUT")
 		myRouter.HandleFunc("/api/malware/{hash}", malwareHandler.DeleteData).Methods("DELETE")
-		err = http.ListenAndServe("127.0.0.1:8080", myRouter)
+		err = http.ListenAndServe(conf.Server, myRouter)
 		if err != nil {
 			fmt.Println(err)
 			return

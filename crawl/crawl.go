@@ -7,16 +7,12 @@ import (
 	"net/http"
 	"regexp"
 	"sync"
-
-	"gopkg.in/mgo.v2"
 )
 
 var (
 	regexLineBreak = regexp.MustCompile(`.*\n`)
 	regexString    = regexp.MustCompile(`\S+`)
 	regexDay       = regexp.MustCompile(`\d{4}-\d{2}-\d{2}/`)
-	collection     *mgo.Collection
-	repository     *MalwareHandler
 )
 
 const (
@@ -25,7 +21,7 @@ const (
 )
 
 type MalwareHandler struct {
-	Repository malware.Crawl
+	Repository malware.Repository
 }
 
 func GetAllDays(s string) []string {
@@ -54,7 +50,7 @@ func GetData(s string) (string, error) {
 	}
 	return string(body), nil
 }
-func GetMalware(wg *sync.WaitGroup, allDays <-chan string) {
+func (re *MalwareHandler) GetMalware(wg *sync.WaitGroup, allDays <-chan string) {
 	defer wg.Done()
 	for day := range allDays {
 		url := fmt.Sprintf(urlDay, day, day[:len(day)-1])
@@ -83,7 +79,7 @@ func GetMalware(wg *sync.WaitGroup, allDays <-chan string) {
 				it.Sha256 = item[2]
 			}
 			it.Date = day[:len(day)-1]
-			err = repository.Repository.Insert(it)
+			err = re.Repository.Insert(it)
 			if err != nil {
 				fmt.Println("error", err)
 			}
@@ -92,7 +88,6 @@ func GetMalware(wg *sync.WaitGroup, allDays <-chan string) {
 }
 
 func (re *MalwareHandler) Crawl() {
-	repository = re
 	body, err := GetData("")
 	if err != nil {
 		return
@@ -103,7 +98,7 @@ func (re *MalwareHandler) Crawl() {
 	var wg sync.WaitGroup
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
-		go GetMalware(&wg, jobs)
+		go re.GetMalware(&wg, jobs)
 	}
 	for _, element := range allDays {
 		jobs <- element
