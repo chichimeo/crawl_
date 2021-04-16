@@ -1,12 +1,13 @@
 package api
 
 import (
-	"Crawl/malware"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
+
+	"github.com/chichimeo/Crawl/malware"
 
 	"github.com/gorilla/mux"
 )

@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"os"
 
-	"Crawl/api"
-	"Crawl/crawl"
-	"Crawl/malware"
+	"github.com/chichimeo/crawl/api"
+	"github.com/chichimeo/crawl/crawl"
+	"github.com/chichimeo/crawl/malware"
 
 	"github.com/BurntSushi/toml"
 	"github.com/gorilla/mux"

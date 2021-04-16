@@ -1,12 +1,13 @@
 package crawl
 
 import (
-	"Crawl/malware"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"regexp"
 	"sync"
+
+	"github.com/chichimeo/crawl/malware"
 )
 
 var (
