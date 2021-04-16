@@ -35,7 +35,7 @@ func (re *MalwareHandler) CreateData(w http.ResponseWriter, r *http.Request) {
 
 	err = re.Repository.Insert(newData)
 	if err != nil {
-		w.WriteHeader(http.StatusServiceUnavailable)
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"message": err.Error(),
 		})
@@ -57,7 +57,7 @@ func (re *MalwareHandler) UpdateData(w http.ResponseWriter, r *http.Request) {
 	hash := mux.Vars(r)["hash"]
 	err = re.Repository.Update(hash, newData)
 	if err != nil {
-		w.WriteHeader(http.StatusServiceUnavailable)
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"message": err.Error(),
 		})
@@ -74,7 +74,7 @@ func (re *MalwareHandler) DeleteData(w http.ResponseWriter, r *http.Request) {
 
 	err := re.Repository.Delete(hash)
 	if err != nil {
-		w.WriteHeader(http.StatusServiceUnavailable)
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"message": err.Error(),
 		})
@@ -92,7 +92,7 @@ func (re *MalwareHandler) GetOneByMd5(w http.ResponseWriter, r *http.Request) {
 	data, err := re.Repository.FindByMd5(hash)
 
 	if err != nil {
-		w.WriteHeader(http.StatusServiceUnavailable)
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"message": err.Error(),
 		})
@@ -109,7 +109,7 @@ func (re *MalwareHandler) GetOneBySha1(w http.ResponseWriter, r *http.Request) {
 	data, err := re.Repository.FindBySha1(hash)
 
 	if err != nil {
-		w.WriteHeader(http.StatusServiceUnavailable)
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"message": err.Error(),
 		})
@@ -125,7 +125,7 @@ func (re *MalwareHandler) GetOneBySha256(w http.ResponseWriter, r *http.Request)
 	data, err := re.Repository.FindBySha256(hash)
 
 	if err != nil {
-		w.WriteHeader(http.StatusServiceUnavailable)
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"message": err.Error(),
 		})
@@ -141,7 +141,7 @@ func (re *MalwareHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	data, err := re.Repository.FindByID(id)
 
 	if err != nil {
-		w.WriteHeader(http.StatusServiceUnavailable)
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"message": err.Error(),
 		})
@@ -168,7 +168,7 @@ func (re *MalwareHandler) GetMalwares(w http.ResponseWriter, r *http.Request) {
 	malwareList, err := re.Repository.List(skip, limit)
 
 	if err != nil {
-		w.WriteHeader(http.StatusServiceUnavailable)
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"message": err.Error(),
 		})
